@@ -72,10 +72,71 @@ order by 1,2
 -- Looking at Total Population vs Vaccination
 
 Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
-, sum(cast(vac.new_vaccinations as int)) OVER (Partition by dea.location order by dea.location, dea.date)
+, sum(cast(vac.new_vaccinations as float)) OVER (Partition by dea.location order by dea.location, dea.date) as VaccineperPeople
 from PortfolioProject..CovidDeaths dea
 Join PortfolioProject..CovidVaccinations vac
 	On dea.location = vac.location
 	and dea.date = vac.date
 Where dea.continent is not null
 order by 2,3
+
+-- CTE
+
+With VacvsPop (Continent, location, date, population, new_vaccinations, Vaccineperpeople)
+as
+(
+Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+, sum(cast(vac.new_vaccinations as float)) OVER (Partition by dea.location order by dea.location, dea.date) as VaccineperPeople
+from PortfolioProject..CovidDeaths dea
+Join PortfolioProject..CovidVaccinations vac
+	On dea.location = vac.location
+	and dea.date = vac.date
+Where dea.continent is not null
+--order by 2,3
+)
+Select *, (VaccineperPeople/Population)*100
+From VacvsPop
+
+
+
+With VacvsPop (Continent, location, date, population, new_vaccinations, Vaccineperpeople)
+as
+(
+Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+, sum(cast(vac.new_vaccinations as float)) OVER (Partition by dea.location order by dea.location, dea.date) as VaccineperPeople
+from PortfolioProject..CovidDeaths dea
+Join PortfolioProject..CovidVaccinations vac
+	On dea.location = vac.location
+	and dea.date = vac.date
+Where dea.continent is not null
+--order by 2,3
+)
+Select *, (VaccineperPeople/Population)*100 as Precentage
+From VacvsPop
+
+
+
+
+-- TEMP TABLE
+
+Create Table #PercentPopulationVaccinated2
+(
+Continent nvarchar(255), 
+location nvarchar(255), 
+date datetime, 
+population nvarchar(255), 
+new_vaccinations nvarchar(255), 
+Vaccineperpeople numeric
+)
+
+Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+, sum(cast(vac.new_vaccinations as float)) OVER (Partition by dea.location order by dea.location, dea.date) as VaccineperPeople
+from PortfolioProject..CovidDeaths dea
+Join PortfolioProject..CovidVaccinations vac
+	On dea.location = vac.location
+	and dea.date = vac.date
+Where dea.continent is not null
+--order by 2,3
+
+Select *, (VaccineperPeople/Population)*100
+From #PercentPopulationVaccinated2 
